@@ -1,0 +1,111 @@
+[
+  {
+    "number": "123456789",
+    "apps": [
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(called=+39${EXTEN:1})"
+        }
+      },
+      {
+        "name": "Goto",
+        "params": {
+          "number": "check_called",
+          "dialplan": "zendesk_callback"
+        }
+      }
+    ],
+    "comment": ""
+  },
+  {
+    "number": "ingresso_chiamata_normale",
+    "apps": [
+      {
+        "name": "LookUpCidNameInPhonebook",
+        "params": {
+          "number": "${CALLERID(number):}",
+          "phonebookId": "",
+          "options": ""
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_chiamante = ${CALLERID(num)})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_channel_unique= ${CHANNEL})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_chiamato = ${called})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_w_ticket_id = ${ticket_id})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_w_call_id = ${call_id})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(end_user_id=${CURL(http://127.0.0.1/zendesk/1_get_end_user.php?caller=${CALLERID(num):1})})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(loop_backgroup=${CURL(http://127.0.0.1/zendesk/2_backgrond_starter.php?uid_channel=${CHANNEL}&caller=${CALLERID(num)}&called=${called}&end_user_id=${end_user_id}&ticket_id=${ticket_id}&call_id=${call_id})})"
+        }
+      },
+      {
+        "name": "Set",
+        "params": {
+          "key": "tags",
+          "value": "${w_ticket_id}"
+        }
+      },
+      {
+        "name": "WaitExten",
+        "params": {
+          "seconds": "5"
+        }
+      },
+      {
+        "name": "Queue",
+        "params": {
+          "queueId": "91",
+          "msgForOperator": "",
+          "timeout": "600",
+          "mohClass": ""
+        }
+      },
+      {
+        "name": "Hangup",
+        "params": {
+          "causeCode": "16"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(ticket_id=${CURL(http://127.0.0.1/zendesk/2_create_ticket.php?caller=${CALLERID(num)}&called=${called}&end_user_id=${end_user_id})})"
+        }
+      }
+    ],
+    "comment": "appid 198393"
+  }
+]

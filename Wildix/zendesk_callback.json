@@ -1,0 +1,123 @@
+[
+  {
+    "number": "calls_found",
+    "apps": [
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(CB_text=Callback da )"
+        }
+      },
+      {
+        "name": "Set",
+        "params": {
+          "key": "cidname",
+          "value": "${CB_text}${CALLERID(name):}"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(end_user_id=${CURL(http://127.0.0.1/zendesk/1_get_end_user.php?caller=${CALLERID(num):1})})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(ticket_id=${CURL(http://127.0.0.1/zendesk/98_callback_get_ticket_id.php?caller=${CALLERID(num):1})})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(call_id=${CURL(http://127.0.0.1/zendesk/98_callback_get_call_id.php?ticket_id=${ticket_id})})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(DEBUG_NEW_w_ticket_id_callback = ${ticket_id}, call_id=${call_id})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(loop_backgroup=${CURL(http://127.0.0.1/zendesk/2_backgrond_starter.php?uid_channel=${CHANNEL}&caller=${CALLERID(num)}&called=${called}&end_user_id=${end_user_id}&ticket_id=${ticket_id}&call_id=${call_id})})"
+        }
+      },
+      {
+        "name": "DialPhone",
+        "params": {
+          "number": "${last_caller}",
+          "timeout": "20",
+          "options": "",
+          "msgForOperator": ""
+        }
+      },
+      {
+        "name": "Goto",
+        "params": {
+          "number": "no_calls_found",
+          "dialplan": "zendesk_callback"
+        }
+      }
+    ],
+    "comment": ""
+  },
+  {
+    "number": "check_called",
+    "apps": [
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(CB_timer=10)"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "NoOP(${CALLERID(num)})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(CALLER=${CALLERID(num):1})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "set(last_caller=${CURL(http://127.0.0.1/sqlquery/check_called.php?caller=${CALLER}&timeout=${CB_timer})})"
+        }
+      },
+      {
+        "name": "CustomApp",
+        "params": {
+          "cwApp": "GotoIf($[${last_caller}=no_calls_found]?no_calls_found,1)"
+        }
+      },
+      {
+        "name": "Goto",
+        "params": {
+          "number": "calls_found",
+          "dialplan": "zendesk_callback"
+        }
+      }
+    ],
+    "comment": ""
+  },
+  {
+    "number": "no_calls_found",
+    "apps": [
+      {
+        "name": "Goto",
+        "params": {
+          "number": "ingresso_chiamata_normale",
+          "dialplan": "zendesk_in"
+        }
+      }
+    ],
+    "comment": ""
+  }
+]
